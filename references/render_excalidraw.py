@@ -137,11 +137,16 @@ def render(
             device_scale_factor=scale,
         )
 
+        # Capture console / errors for diagnosis
+        page.on("console", lambda msg: print(f"[console.{msg.type}] {msg.text}", file=sys.stderr))
+        page.on("pageerror", lambda err: print(f"[pageerror] {err}", file=sys.stderr))
+        page.on("requestfailed", lambda req: print(f"[requestfailed] {req.url} -> {req.failure}", file=sys.stderr))
+
         # Load the template
         page.goto(template_url)
 
         # Wait for the ES module to load (imports from esm.sh)
-        page.wait_for_function("window.__moduleReady === true", timeout=30000)
+        page.wait_for_function("window.__moduleReady === true", timeout=120000)
 
         # Inject the diagram data and render
         json_str = json.dumps(data)
